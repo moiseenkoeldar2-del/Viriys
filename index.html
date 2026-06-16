@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cyber Defense Mission</title>
+<style>
+body {
+    background: #000000;
+    color: #ffffff;
+    font-family: 'Courier New', Courier, monospace;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    user-select: none;
+}
+
+.lock-container {
+    text-align: center;
+    width: 100%;
+    max-width: 450px;
+    padding: 20px;
+    box-sizing: border-box;
+    transition: all 0.5s ease;
+    border: 1px solid #222;
+    background: #050505;
+    border-radius: 8px;
+}
+
+.lock-container.fullscreen-lock {
+    max-width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: #050000;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9998;
+    border: none;
+    border-radius: 0;
+}
+
+h2 {
+    color: #ff3333;
+    font-size: 22px;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin-bottom: 30px;
+}
+
+.fullscreen-lock h2 {
+    font-size: 36px;
+    animation: pulse 1.5s infinite;
+}
+
+input[type="password"] {
+    width: 80%;
+    max-width: 300px;
+    padding: 15px;
+    background: #111;
+    border: 1px solid #333;
+    color: #00ff00;
+    font-size: 18px;
+    text-align: center;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    outline: none;
+}
+
+button {
+    width: 80%;
+    max-width: 300px;
+    padding: 15px;
+    background: #ff3333;
+    color: #fff;
+    border: none;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+button:disabled, input[type="password"]:disabled {
+    display: none;
+}
+
+.status {
+    margin-top: 30px;
+    font-size: 16px;
+    color: #ff5555;
+    line-height: 1.6;
+    white-space: pre-line;
+}
+
+.fullscreen-lock .status {
+    font-size: 80px;
+    font-weight: bold;
+    color: #ff1111;
+    font-family: monospace;
+    text-shadow: 0 0 30px rgba(255, 0, 0, 0.7);
+}
+
+.screamer-effect {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #000;
+    color: #ff0000;
+    justify-content: center;
+    align-items: center;
+    font-size: 45px;
+    font-weight: bold;
+    z-index: 9999;
+    letter-spacing: 5px;
+    text-align: center;
+    animation: flash 0.15s infinite;
+}
+
+@keyframes flash {
+    0% { background: #000; }
+    50% { background: #330000; }
+    100% { background: #000; }
+}
+
+@keyframes pulse {
+    0% { opacity: 0.5; }
+    50% { opacity: 1; }
+    100% { opacity: 0.5; }
+}
+</style>
+</head>
+<body>
+
+<div class="lock-container" id="lockBox">
+    <h2>Защищенный терминал</h2>
+    <input type="password" id="passInput" placeholder="Введите ключ">
+    <br>
+    <button id="checkBtn" onclick="verifySub()">Дешифровать</button>
+    <div id="statusMsg" class="status">Осталось попыток: 3</div>
+</div>
+
+<div class="screamer-effect" id="screamer">
+    СИСТЕМА БЛОКИРОВКИ АКТИВИРОВАНА
+</div>
+
+<script>
+const SECRET_KEY = "alinohkasibskraibmy"; 
+let attempts = 3;
+let timer;
+
+function verifySub() {
+    const input = document.getElementById('passInput');
+    const msg = document.getElementById('statusMsg');
+    
+    if (input.value === SECRET_KEY) {
+        msg.style.color = "#00ff00";
+        msg.innerText = "Доступ получен. Терминал разблокирован.";
+        input.disabled = true;
+        document.getElementById('checkBtn').disabled = true;
+        return;
+    }
+    
+    attempts--;
+    input.value = "";
+    
+    if (attempts === 1) {
+        triggerLock(3600); // 1 час
+    } else if (attempts <= 0) {
+        triggerScreamer(); 
+    } else {
+        msg.innerText = `Неверный ключ. Осталось попыток: ${attempts}`;
+    }
+}
+
+function triggerLock(seconds) {
+    const lockBox = document.getElementById('lockBox');
+    const input = document.getElementById('passInput');
+    const btn = document.getElementById('checkBtn');
+    const msg = document.getElementById('statusMsg');
+    
+    lockBox.classList.add('fullscreen-lock');
+    input.disabled = true;
+    btn.disabled = true;
+    
+    let timeLeft = seconds; 
+    
+    timer = setInterval(() => {
+        timeLeft--;
+        
+        let hrs = Math.floor(timeLeft / 3600);
+        let mins = Math.floor((timeLeft % 3600) / 60);
+        let secs = timeLeft % 60;
+        
+        msg.innerText = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            lockBox.classList.remove('fullscreen-lock');
+            input.disabled = false;
+            btn.disabled = false;
+            msg.style.fontSize = "16px";
+            msg.innerText = `Финальная попытка! Будьте внимательны.`;
+        }
+    }, 1000);
+}
+
+function triggerScreamer() {
+    document.getElementById('lockBox').style.display = 'none';
+    document.getElementById('screamer').style.display = 'flex';
+    
+    if ('speechSynthesis' in window) {
+        let alarm = new SpeechSynthesisUtterance("Внимание. Система полностью заблокирована.");
+        alarm.lang = "ru-RU";
+        alarm.rate = 1.0; 
+        alarm.pitch = 0.2;
+        window.speechSynthesis.speak(alarm);
+    }
+}
+</script>
+
+</body>
+</html>
